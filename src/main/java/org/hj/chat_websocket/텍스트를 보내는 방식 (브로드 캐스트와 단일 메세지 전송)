@@ -1,7 +1,7 @@
 session.sendMessage(new TextMessage(...)) - 단일 클라이언트에 메시지
 
 broadcastMessage - 여러 클라이언트(모든 클라이언트)에게 메시지 전송
-
+//
 차이점
 1. 수신 대상
 session.sendMessage(new TextMessage(...)): 특정 클라이언트(현재 세션)에만 메시지를 보냄

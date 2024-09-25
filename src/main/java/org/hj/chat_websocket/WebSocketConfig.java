@@ -18,7 +18,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public WebSocketConfig(ChatHandler chatHandler) {
         this.chatHandler = chatHandler;
     }
-
+//
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {

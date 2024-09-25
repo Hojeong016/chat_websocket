@@ -21,7 +21,7 @@ public class ChatHandler extends TextWebSocketHandler {
     //여러 스레드에서 동시에 데이터를 읽고 쓰더라도 동시성 문제를 방지합니다. 웹소켓 서버는 다수의 클라이언트와 동시에 상호작용하므로 스레드 안전성이 필수적
     //String : 웹소켓 세션을 식별할 수 있는 키 / 사용자의 id, 세션 id, 토큰등이 고유한 값이 될 수 있다.
     //WebSocketSession : 스프링의 WebSocketSession 객체, 웹소켓 연결된 사용자와의 상호작용을 담당 --// 아직 완벽 이해가 안감
-
+    //
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
