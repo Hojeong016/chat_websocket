@@ -7,6 +7,7 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 //2
@@ -16,18 +17,25 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class ChatHandler extends TextWebSocketHandler {
 
+    //
     private final ConcurrentHashMap<String, WebSocketSession> sessionMap = new ConcurrentHashMap<>();
     //ConcurrentHashMap : 스레드의 안전한 해시맵을 사용하여 웹소켓 세션을 관리하는 방식
     //여러 스레드에서 동시에 데이터를 읽고 쓰더라도 동시성 문제를 방지합니다. 웹소켓 서버는 다수의 클라이언트와 동시에 상호작용하므로 스레드 안전성이 필수적
     //String : 웹소켓 세션을 식별할 수 있는 키 / 사용자의 id, 세션 id, 토큰등이 고유한 값이 될 수 있다.
     //WebSocketSession : 스프링의 WebSocketSession 객체, 웹소켓 연결된 사용자와의 상호작용을 담당 --// 아직 완벽 이해가 안감
-    //
+    //채팅방별 사용자 세션을 관리하는 맵
+    private final Map<String, Map<String,WebSocketSession>> userRoom = new ConcurrentHashMap<>();
 
+    //메세지 처리
+    //채팅방별 사용자 세션을
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         //사용자가 "Hello Server!"라는 메시지를 보냈다면, 이 메시지를 TextMessage 객체(메세지를 감싸는 컨테이너의 역할)로 표현하고, 그 내용을 getPayload()를 통해 얻을 수 있다.
+        //룸이 추가되면서 동일한 룸에 있는 유저들에게 전달해야하는 로직이 포함되어야함,
+        // 방아이디 가져오기
+        String roomId =session.getUri().toString().split("/chat/")[1];
         String payload = message.getPayload();
-        log.info("message:{}", payload);
+        log.info("message:{},roomId{}", payload,roomId);
         // 이 부분에 추후 악의적인 문자의 내용을 검증하는 부분을 추가할 수 있음.
 
         //String sessionId = session.getId(); // 아이디 검증? 즉 누구에게 세션을 보낼 수 있는가를 세션 아이디와 비교를 통해 설정을 가능하다
@@ -35,7 +43,7 @@ public class ChatHandler extends TextWebSocketHandler {
 
         // 브로드캐스트 : 모든 연결된 세션에 브로드 캐스트 = ㅎ현재 서버에 연결된 모든 클라이언트에게 동일한 메세지를 전솔한다,
         try {
-            for (WebSocketSession s : sessionMap.values()) {
+            for (WebSocketSession s : userRoom.get(roomId).values()/*sessionMap.values()*/) {
                 if (s.isOpen() /*&& sessionId.equals(s.getId())*/) { // 즉, && 연산자는 첫 번째 조건이 false이면 두 번째 조건을 검증하지 않고 바로 false를 반환 나 왜 이리 멍청??? 이런 기본도 까먹다니...
                     s.sendMessage(new TextMessage(payload)); // 웹 소켓이 연결되어있는 모든 사용자에게 메세지를 전달
                 }
@@ -46,12 +54,21 @@ public class ChatHandler extends TextWebSocketHandler {
         }
     }
 
+    //사용자 연결시 사용
     //클라이언트와 서버 간의 웹소켓 연결이 성공적으로 수립되었을 때 호출되는 메서드
     // 초기 환영 메세지를 전달 하거나 세션을 특정 저장소에 저장하는 등의 역할을 수행할 수 있는 공간
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        sessionMap.put(session.getId(), session);
-        log.info("맵 저장 sessionId:{}", session.getId());
+        //url 객체반환 후 id 추출 하기
+        String roomId =session.getUri().toString().split("/chat/")[1];
+
+        userRoom.computeIfAbsent(roomId, k -> new ConcurrentHashMap<>())
+                .put(session.getId(),session);
+
+        log.info("roomId:{}, sessionId{}", roomId, session.getId() );
+        // id를 키로 쓰고 해당 키가 존재 하지 않을 때 함수가 실행되어 새로운 룸을 생성하기 위해 computeIfAbsent 사용하기
+    /*    sessionMap.put(session.getId(), session);*/
+    /*    log.info("맵 저장 sessionId:{}", session.getId());*/
         //축하 메세지
         session.sendMessage(new TextMessage("환영합니다" + session.getId() + "님"));
     }
@@ -65,7 +82,13 @@ public class ChatHandler extends TextWebSocketHandler {
     //정상 종료 : (NORMAL 상태), 오류가 발생했는지, 타임아웃인지 등을 (CloseStatus)
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        sessionMap.remove(session.getId());
+       String roomId = session.getUri().toString().split("/chat/")[1];
+        userRoom.get(roomId).remove(session.getId());
+        // 방에 사용자가 없으면 방을 삭제
+        if(userRoom.get(roomId).isEmpty()) {
+            userRoom.remove(roomId);
+        }
+        /* sessionMap.remove(session.getId());*/
         log.info("퇴장 sessionId:{}", session.getId());
         session.sendMessage(new TextMessage(session.getId()+"님이 퇴장하였습니다."));
     }

@@ -1,0 +1,61 @@
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1대1 채팅</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .chat-box {
+            width: 100%;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .chat-log {
+            height: 300px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            overflow-y: scroll;
+        }
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-box">
+    <div class="chat-log" id="chatLog"></div>
+    <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<script>
+    const ws = new WebSocket('ws://localhost:8080/chat');
+    const chatLog = document.getElementById('chatLog');
+    const chatInput = document.getElementById('chatInput');
+
+    ws.onmessage = function(event) {
+        const message = document.createElement('div');
+        message.textContent = event.data;
+        chatLog.appendChild(message);
+    };
+
+    function sendMessage() {
+        const message = chatInput.value;
+        ws.send(message);
+        chatInput.value = '';
+    }
+</script>
+</body>
+</html>
+-->
