@@ -33,7 +33,7 @@ public class ChatHandler extends TextWebSocketHandler {
         //사용자가 "Hello Server!"라는 메시지를 보냈다면, 이 메시지를 TextMessage 객체(메세지를 감싸는 컨테이너의 역할)로 표현하고, 그 내용을 getPayload()를 통해 얻을 수 있다.
         //룸이 추가되면서 동일한 룸에 있는 유저들에게 전달해야하는 로직이 포함되어야함,
         // 방아이디 가져오기
-        String roomId =session.getUri().toString().split("/chat/")[1];
+        String roomId =session.getUri().toString().split("/ws/chat/")[1];
         String payload = message.getPayload();
         log.info("message:{},roomId{}", payload,roomId);
         // 이 부분에 추후 악의적인 문자의 내용을 검증하는 부분을 추가할 수 있음.
@@ -60,15 +60,15 @@ public class ChatHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         //url 객체반환 후 id 추출 하기
-        String roomId =session.getUri().toString().split("/chat/")[1];
+        String roomId =session.getUri().toString().split("/ws/chat/")[1];
 
         userRoom.computeIfAbsent(roomId, k -> new ConcurrentHashMap<>())
                 .put(session.getId(),session);
 
         log.info("roomId:{}, sessionId{}", roomId, session.getId() );
         // id를 키로 쓰고 해당 키가 존재 하지 않을 때 함수가 실행되어 새로운 룸을 생성하기 위해 computeIfAbsent 사용하기
-    /*    sessionMap.put(session.getId(), session);*/
-    /*    log.info("맵 저장 sessionId:{}", session.getId());*/
+        /*    sessionMap.put(session.getId(), session);*/
+        /*    log.info("맵 저장 sessionId:{}", session.getId());*/
         //축하 메세지
         session.sendMessage(new TextMessage("환영합니다" + session.getId() + "님"));
     }
@@ -82,7 +82,7 @@ public class ChatHandler extends TextWebSocketHandler {
     //정상 종료 : (NORMAL 상태), 오류가 발생했는지, 타임아웃인지 등을 (CloseStatus)
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-       String roomId = session.getUri().toString().split("/chat/")[1];
+        String roomId = session.getUri().toString().split("/ws/chat/")[1];
         userRoom.get(roomId).remove(session.getId());
         // 방에 사용자가 없으면 방을 삭제
         if(userRoom.get(roomId).isEmpty()) {

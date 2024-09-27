@@ -22,7 +22,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(chatHandler, "/chat/").setAllowedOrigins("*");
+        registry.addHandler(chatHandler, "/ws/chat/*").setAllowedOrigins("*");
+        //   실패했던 이유 /ws/chat/"-> /ws/chat"setAllowedOrigins("*"); -> 슬래시 제공???
+// 변수값을 받아오기 위해 왜 /* 처리를 해주어야하는가? - 웹 소켓 동적 경로
         //* = 모든 도메인에 대한 접근을 허용 -> 보안상 문제가 발생할 수 있다
         //setAllowedOrigins("https://your-domain.com")와 같이 필요한 도메인만 명시화 하기
     }

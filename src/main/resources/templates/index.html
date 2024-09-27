@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅방 선택</title>
+</head>
+<body>
+<h1>채팅방 리스트</h1>
+<button onclick="enterRoom('1')">채팅방 1로 입장</button>
+<button onclick="enterRoom('2')">채팅방 2로 입장</button>
+<button onclick="enterRoom('3')">채팅방 3로 입장</button>
+
+<script>
+    function enterRoom(roomId) {
+        // 선택된 roomId에 맞는 채팅방으로 이동
+        window.location.href = '/chat/room/' + roomId;
+    }
+</script>
+</body>
+</html>
